@@ -16,6 +16,7 @@ class ImageViewController: UIViewController {
 
     private var images: [UIImage?] = []
     private var imagesInfo = [ImageInfo]()
+    private var id = [String]()
     
     private let spacing: CGFloat = 5
     private let numberOfItemsPerRow: CGFloat = 2
@@ -72,15 +73,20 @@ class ImageViewController: UIViewController {
     
     private func getCachedImages() {
         CacheManager.shared.getCachedImages {
-            (images) in
+            (images, id) in
             self.images = images
+            self.id = id
             self.collectionView.reloadSections(IndexSet(arrayLiteral: 0))
         }
     }
     
     private func loadImage(for cell: ImageCell, at index: Int) {
         if let image = images[index]{
-            cell.configure(with: image)
+            if imagesInfo.count != 0{
+                cell.configure(with: image, likes: self.imagesInfo[index].views ?? 0)
+                return
+            }
+            cell.configure(with: image, likes: 0)
             return
         }
         let info = imagesInfo[index]
@@ -88,7 +94,7 @@ class ImageViewController: UIViewController {
             if index < self.images.count {
                 self.images[index] = image
                 CacheManager.shared.cacheImage(image, with: info.id)
-                cell.configure(with: self.images[index])
+                cell.configure(with: self.images[index], likes: self.imagesInfo[index].views ?? 0)
             }
         }
     }
@@ -102,7 +108,8 @@ class ImageViewController: UIViewController {
             let tag = detail?.tag,
             //let likes = detail?.likes,
             let downloads = detail?.downloads,
-            let views = detail?.views
+            let views = detail?.views,
+            let id = detail?.id
             else{
                 fatalError("Incorrect data passed")
             }
@@ -112,6 +119,7 @@ class ImageViewController: UIViewController {
             secondVC.views = views
             secondVC.images = image
             secondVC.tags = tag
+            secondVC.id = id
         }
     }
     
@@ -167,15 +175,40 @@ extension ImageViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
         var details: [Detail] = []
-        let tags = imagesInfo[indexPath.row].tags
         let image = images[indexPath.row]
+       if imagesInfo.count == 0{
+//            var imagesId = [String]()
+//           imagesId.append(id[indexPath.row])
+        
+//        NetworkService.shared.fetchImages(word: imagesId) { (result) in
+//            self.activityIndicator.stopAnimating()
+//            switch result {
+//            case let .failure(error):
+//                print(error)
+//
+//            case let .success(imagesInfo):
+//                self.imagesInfo = imagesInfo
+//                self.images = Array(repeating: nil, count: imagesInfo.count)}
+//            print(imagesId)
+//        }
+//        let tags = imagesInfo[0].tags
+//        let likes = imagesInfo[0].Likes
+//        let downloads = imagesInfo[0].downloads
+//        let views = imagesInfo[indexPath.row].views
+//        let id = imagesInfo[indexPath.row].id
+//        details.append(Detail(tag: tags, image: image, likes: likes, downloads: downloads, views: views, id: id))
+        }
+       else{
+        let tags = imagesInfo[indexPath.row].tags
         let likes = imagesInfo[indexPath.row].Likes
         let downloads = imagesInfo[indexPath.row].downloads
         let views = imagesInfo[indexPath.row].views
-        details.append(Detail(tag: tags, image: image, likes: likes, downloads: downloads, views: views))
+        let id = imagesInfo[indexPath.row].id
+        details.append(Detail(tag: tags, image: image, likes: likes, downloads: downloads, views: views, id: id))
+        performSegue(withIdentifier: "ShowSecondVC", sender: details[0])
+       }
         //let image = images[indexPath.row]
         //performSegue(withIdentifier: "ShowSecondVC", sender: tags)
-        performSegue(withIdentifier: "ShowSecondVC", sender: details[0])
 }
 
 }

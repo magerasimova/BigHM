@@ -45,60 +45,105 @@ class NetworkService {
     
     //MARK:- Fetch Images
     func fetchImages(word: [String], completion: @escaping (Result<[ImageInfo], SessionError>) -> Void) {
-        var urlComps = baseUrlComponent
-        var result = ""
-        var k = 1
-        for i in word{
-            if k == 1{
-                result += "\(i)"
-                k += 1
-            }
+        if word.count == 1,
+           let word = Int(word[0]){
+                    var urlComps = baseUrlComponent
+                    //let amount = 1
+                    urlComps.queryItems? += [
+                        //URLQueryItem(name: "per_page", value: "\(amount)"),
+                        URLQueryItem(name: "id", value: "\(word)"),
+                       //URLQueryItem(name: "per_page", value: "\(amount)"),
+                        //URLQueryItem(name: "editors_choice", value: "\(true)")
+                    ]
+                    guard let url = urlComps.url else {
+                        completion(.failure(.invalidUrl))
+                        return
+                    }
+                    
+                    URLSession.shared.dataTask(with: url) { (data, response, error) in
+                        if let error = error {
+                            DispatchQueue.main.async {
+                                completion(.failure(.other(error)))
+                            }
+                            return
+                        }
+                        
+                        let response = response as! HTTPURLResponse
+                        guard let data = data, response.statusCode == 200 else {
+                            DispatchQueue.main.async {
+                                completion(.failure(.serverError(response.statusCode)))
+                            }
+                            return
+                        }
+                        
+                        do {
+                            let serverResponse = try JSONDecoder().decode(ServerResponse<ImageInfo>.self, from: data)
+                            DispatchQueue.main.async {
+                                completion(.success(serverResponse.hits))
+                            }
+                        }
+                        catch let decodingError {
+                            DispatchQueue.main.async {
+                                completion(.failure(.decodingError(decodingError)))
+                            }
+                        }
+                        
+                    }.resume()
+                }
             else{
-                result += "+\(i)"
-            }
-        }
-        let amount = 60
-        urlComps.queryItems? += [
-            //URLQueryItem(name: "per_page", value: "\(amount)"),
-            URLQueryItem(name: "q", value: "\(result)"),
-           URLQueryItem(name: "per_page", value: "\(amount)"),
-            URLQueryItem(name: "editors_choice", value: "\(true)")
-        ]
-        guard let url = urlComps.url else {
-            completion(.failure(.invalidUrl))
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(.other(error)))
+                    var urlComps = baseUrlComponent
+                    var result = ""
+                    var k = 1
+                    for i in word{
+                        if k == 1{
+                            result += "\(i)"
+                            k += 1
+                        }
+                        else{
+                            result += "+\(i)"
+                        }
+                    }
+                    let amount = 60
+                    urlComps.queryItems? += [
+                        //URLQueryItem(name: "per_page", value: "\(amount)"),
+                        URLQueryItem(name: "q", value: "\(result)"),
+                       URLQueryItem(name: "per_page", value: "\(amount)"),
+                        URLQueryItem(name: "editors_choice", value: "\(true)")
+                    ]
+                    guard let url = urlComps.url else {
+                        completion(.failure(.invalidUrl))
+                        return
+                    }
+                    
+                    URLSession.shared.dataTask(with: url) { (data, response, error) in
+                        if let error = error {
+                            DispatchQueue.main.async {
+                                completion(.failure(.other(error)))
+                            }
+                            return
+                        }
+                        
+                        let response = response as! HTTPURLResponse
+                        guard let data = data, response.statusCode == 200 else {
+                            DispatchQueue.main.async {
+                                completion(.failure(.serverError(response.statusCode)))
+                            }
+                            return
+                        }
+                        
+                        do {
+                            let serverResponse = try JSONDecoder().decode(ServerResponse<ImageInfo>.self, from: data)
+                            DispatchQueue.main.async {
+                                completion(.success(serverResponse.hits))
+                            }
+                        }
+                        catch let decodingError {
+                            DispatchQueue.main.async {
+                                completion(.failure(.decodingError(decodingError)))
+                            }
+                        }
+                        
+                    }.resume()
                 }
-                return
-            }
-            
-            let response = response as! HTTPURLResponse
-            guard let data = data, response.statusCode == 200 else {
-                DispatchQueue.main.async {
-                    completion(.failure(.serverError(response.statusCode)))
-                }
-                return
-            }
-            
-            do {
-                let serverResponse = try JSONDecoder().decode(ServerResponse<ImageInfo>.self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(serverResponse.hits))
-                }
-            }
-            catch let decodingError {
-                DispatchQueue.main.async {
-                    completion(.failure(.decodingError(decodingError)))
-                }
-            }
-            
-        }.resume()
-        
-    }
-
+}
 }

@@ -11,15 +11,16 @@ class DetailViewController: UIViewController {
 
     @IBOutlet weak var image: UIImageView!
     @IBOutlet weak var tagLabel: UILabel!
-    @IBOutlet weak var likesLabel: UILabel!
     @IBOutlet weak var downloadsLabel: UILabel!
     @IBOutlet weak var viewsLabel: UILabel!
     
+    @IBOutlet weak var idLabel: UILabel!
     var tags = ""
     var images: UIImage!
     var likes: Int!
     var downloads: Int!
     var views: Int!
+    var id: Int!
     
     
     override func viewDidLoad() {
@@ -33,6 +34,7 @@ class DetailViewController: UIViewController {
         //likesLabel.text = String(likes)
         downloadsLabel.text = String(downloads)
         viewsLabel.text = String(views)
+        idLabel.text = String(id)
     }
 
 }

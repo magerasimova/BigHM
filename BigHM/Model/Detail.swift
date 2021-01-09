@@ -13,5 +13,8 @@ struct Detail{
     var likes: Int?
     var downloads: Int?
     var views: Int?
-
+    var id: Int
+//    init(info: ImageInfo){
+//        tag = info.tags
+//    }
 }

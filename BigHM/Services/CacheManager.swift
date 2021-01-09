@@ -27,7 +27,7 @@ class CacheManager {
                 return
             }
             
-            let imageUrl = getCachesDirectory().appendingPathComponent("\(id).png")
+            let imageUrl = getCachesDirectory().appendingPathComponent("\(id)")
             
             guard !fileManager.fileExists(atPath: imageUrl.path) else {
                 completion?(true)
@@ -42,7 +42,7 @@ class CacheManager {
                     
             do {
                 try data.write(to: imageUrl)
-                print("Image was saved to: \(imageUrl)")
+                print(imageUrl)
                 completion?(true)
             }
             catch {
@@ -72,17 +72,21 @@ class CacheManager {
         return nil
     }
     
-    func getCachedImages(completion: @escaping ([UIImage]) -> Void) {
+    func getCachedImages(completion: @escaping ([UIImage], [String]) -> Void) {
         DispatchQueue.global().async { [self] in
             var images = [UIImage]()
             let imagePaths = getCachedImagePaths()
+            var id = [String]()
             for path in imagePaths {
                 if let image = getImage(from: path) {
                     images.append(image)
+                    let sPath = String(path)
+                    id.append(sPath.components(separatedBy: "/").last ?? "0")
+                    print(sPath.components(separatedBy: "/").last ?? "0")
                 }
             }
             DispatchQueue.main.async {
-                completion(images)
+                completion(images, id)
             }
         }
         
